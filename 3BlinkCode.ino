@@ -40,6 +40,7 @@ void setup() {
       digitalWrite(A5, LOW);   // turn the LED off by making the voltage LOW
       delay(1000);                      // wait for a second
 
+      //COMMENT BY ABBY <3
       digitalWrite(A4, HIGH);  // turn the LED on (HIGH is the voltage level)
       delay(1000);                      // wait for a second
       digitalWrite(A4, LOW);   // turn the LED off by making the voltage LOW
