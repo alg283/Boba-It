@@ -1,9 +1,8 @@
 #include <LiquidCrystal.h>
 
-const int powerSw = 2;
 const int failLED = 3;
 const int successLED = 4;
-const int resetButton = 13;
+const int resetButton = 2;
 //command input pins
 const int scoopSwitch = 5;
 const int stabButton = 6;
@@ -25,7 +24,9 @@ LiquidCrystal lcd(RS, EN, D4, D5, D6, D7);
 //changing variables
 int score = 0;
 int roundCounter = 0;
-unsigned long timer = 1000;
+unsigned long timer = 5000;
+unsigned long preCommand = 0;
+unsigned long postCommand = 0;
 int commandArr[4] = {0, 1, 2, 3};
 int command = 0;
 int stabOut = HIGH;
@@ -36,17 +37,18 @@ bool stabSuccess = false;
 bool scoopSuccess = false;
 bool swipeSuccess = false;
 bool shakeSuccess = false;
+bool roundSuccess = false;
 bool gameOver = false;
 
 void setup() {
   // put your setup code here, to run once:
-  pinMode(powerSw, INPUT_PULLUP);
+  Serial.begin(9600);
   pinMode(reset, INPUT_PULLUP);
   pinMode(scoopSwitch, INPUT_PULLUP);
   pinMode(stabButton, INPUT_PULLUP);
-  pinMode(cardSwipe, INPUT_PULLUP);
-  pinMode(VRX, INPUT_PULLUP);
-  pinMode(VRY, INPUT_PULLUP);
+  pinMode(cardSwipe, INPUT);
+  pinMode(VRX, INPUT);
+  pinMode(VRY, INPUT);
   pinMode(failLED, OUTPUT);
   pinMode(successLED, OUTPUT);
   pinMode(speaker, OUTPUT);
@@ -64,87 +66,112 @@ void loop() {
   //go through commands
   else {
     //randomly access command array to pick command to be done
+    preCommand = millis();
     command = commandArr[int(floor(random(0, 4)))];
-    delay(timer);
+    Serial.println(command);
     //activate command based on random number
-    switch (command) {
+    while (postCommand - preCommand <= timer) {
+      if (roundSuccess = true) break;
+      switch (command) {
 
-      //stab command
-      case 0:
-        stabOut = digitalRead(stabButton);
-        if (stabOut == LOW) stabSuccess == true;
-        else if (stabOut == HIGH) stabSuccess == false;
-        if (stabSuccess) {
-          successFxn();
-        }
-        else {
-          failFxn();
-        }
-      break;
+        //stab command
+        case 0:
+          stabOut = digitalRead(stabButton);
+          if (stabOut == LOW) stabSuccess == true;
+          else if (stabOut == HIGH) stabSuccess == false;
+          if (stabSuccess) {
+            roundSuccess = successFxn();
+            continue;
+          }
+          else {
+            roundSuccess = failFxn();
+          }
+        break;
 
-      //shake command
-      case 1:
-        //read joystick input for success or fail
-        if (shakeSuccess) {
-          successFxn();
-        }
-        else {
-          failFxn();
-        }
-      break;
+        //shake command
+        case 1:
+          //read joystick input for success or fail
+          if (shakeSuccess) {
+            roundSuccess = successFxn();
+            continue;
+          }
+          else {
+            //failFxn();
+            //for testing purposes
+            roundSuccess = successFxn();
+          }
+        break;
 
-      //swipe command
-      case 2:
-        swipeOut = analogRead(cardSwipe);
-        if (swipeOut >= 500) swipeSuccess = true;
-        else if (swipeOut < 500) swipeSuccess = false;
-        if (swipeSuccess) {
-          successFxn();
-        }
-        else {
-          failFxn();
-        }
-      break;
+        //swipe command
+        case 2:
+          swipeOut = analogRead(cardSwipe);
+          if (swipeOut >= 500) swipeSuccess = true;
+          else if (swipeOut < 500) swipeSuccess = false;
+          if (swipeSuccess) {
+            roundSuccess = successFxn();
+            continue;
+          }
+          else {
+            roundSuccess = failFxn();
+          }
+        break;
 
-      //scoop command
-      case 3:
-        scoopOut = digitalRead(scoopSwitch);
-        if (scoopOut == LOW) scoopSuccess = true;
-        else if (scoopOut == HIGH) scoopSuccess = false;
-        if (scoopSuccess) {
-          successFxn();
-        }
-        else {
-          failFxn();
-        }
-      break;
+        //scoop command
+        case 3:
+          scoopOut = digitalRead(scoopSwitch);
+          if (scoopOut == LOW) scoopSuccess = true;
+          else if (scoopOut == HIGH) scoopSuccess = false;
+          if (scoopSuccess) {
+            roundSuccess = successFxn();
+            continue;
+          }
+          else {
+            roundSuccess = failFxn();
+          }
+        break;
+      }
     }
+
+    //time hath run out
+    if (roundSuccess == false) gameOver = true;
   }
 }
 
 void reset() {
   //resets game
   score = 0;
-  timer = 1000;
+  timer = 5000;
   lcd.clear();
   delay(1000);
 }
 
-void successFxn() {
+bool successFxn() {
   score++;
   roundCounter++;
+  postCommand = millis();
+  timerDec();
   digitalWrite(successLED, HIGH);
   delay(500);
   digitalWrite(successLED, LOW);
+  return true;
 }
 
-void failFxn() {
+bool failFxn() {
   digitalWrite(failLED, HIGH);
   delay(500);
   digitalWrite(failLED, LOW);
   gameOver = true;
+  return false;
 }
 
 void gameOverFxn() {
   lcd.print(char(score));
+  while (resetButton == HIGH) {}
+  gameOver = false;
+}
+
+void timerDec() {
+  if (score%10 == 0) {
+    timer -= 500;
+  }
 }
