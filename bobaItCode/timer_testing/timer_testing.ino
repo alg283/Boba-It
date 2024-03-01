@@ -3,7 +3,7 @@ const int countLED = 5;
 const int success = 4;
 const int fail = 3;
 int count = 0;
-int timer = 5000;
+int timer = 10000;
 unsigned long preCommand = 0;
 unsigned long postCommand = 0;
 
@@ -35,8 +35,11 @@ void loop() {
 
   postCommand = millis();
 
-  while (postCommand - preCommand < timer) {}
+  while (postCommand - preCommand < timer) {
+    postCommand = millis();
+  }
   digitalWrite(fail, HIGH);
   digitalWrite(success, LOW);
+  delay(1000);
 
 }

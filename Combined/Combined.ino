@@ -3,6 +3,8 @@
 const int stabButton = A2;
 int stabOut = LOW;
 int count = 0;
+int success = 4;
+int fail = 3;
 
 //joystick input pins
 const int VRX = A0;
@@ -21,6 +23,8 @@ const int LED2 = 6; //right
 const int LED3 = 7; // down
 const int LED4 = 8; // up
 
+unsigned long int pre = 0;
+unsigned long int post = 0;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
@@ -31,19 +35,18 @@ void setup() {
   pinMode(LED2, OUTPUT);
   pinMode(LED3, OUTPUT);
   pinMode(LED4, OUTPUT);
+  pinMode(success, OUTPUT);
+  pinMode(fail, OUTPUT);
 
 }
 
 // the loop function runs over and over again forever
 void loop() {
   // read analog X and Y analog values
-
-          stabOut = digitalRead(stabButton);
-          if (stabOut == HIGH) {
-            count++;
-            digitalWrite(LED4,HIGH);
-            delay(1000);
-            digitalWrite(LED4,LOW); }
+  digitalWrite(LED1,HIGH);
+    digitalWrite(LED2,HIGH);
+      digitalWrite(LED3,HIGH);
+        digitalWrite(LED4,HIGH);
 
  
 }
