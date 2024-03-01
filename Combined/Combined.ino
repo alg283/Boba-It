@@ -1,10 +1,12 @@
 
+// straw stab button
+const int stabButton = A2;
+int stabOut = LOW;
+int count = 0;
+
 //joystick input pins
 const int VRX = A0;
 const int VRY = A1;
-const int failLED = 3;
-const int successLED = 4;
-
 int xvalue = 0;
 int yvalue = 0;
 int joystickMoves = 0;
@@ -23,24 +25,27 @@ const int LED4 = 8; // up
 // the setup function runs once when you press reset or power the board
 void setup() {
   pinMode(VRX, INPUT);
+  pinMode(stabButton, INPUT_PULLUP);
   pinMode(VRY, INPUT);
   pinMode(LED1, OUTPUT);
   pinMode(LED2, OUTPUT);
   pinMode(LED3, OUTPUT);
   pinMode(LED4, OUTPUT);
-  pinMode(successLED,OUTPUT);
-  pinMode(failLED,OUTPUT);
 
 }
 
 // the loop function runs over and over again forever
 void loop() {
   // read analog X and Y analog values
-  complete = shakeSucces();
-  if (complete==true)
-    digitalWrite(successLED,HIGH);
-  else
-    digitalWrite(failLED,HIGH);
+
+          stabOut = digitalRead(stabButton);
+          if (stabOut == HIGH) {
+            count++;
+            digitalWrite(LED4,HIGH);
+            delay(1000);
+            digitalWrite(LED4,LOW); }
+
+ 
 }
 
 bool shakeSucces()
@@ -75,6 +80,11 @@ bool shakeSucces()
         joystickMoves++;
         if (joystickMoves > 2)
         {
+          up = false;
+          down = false;
+          left = false;
+          right = false;
+          joystickMoves = 0;
           return true;
         }
         else // restart the moves for another rotation
