@@ -21,10 +21,11 @@ void loop() {
   digitalWrite(success, HIGH);
   digitalWrite(fail, LOW);
 
-  if(analogRead(counter) >= 400) {
+  if(digitalRead(counter) == HIGH) {
     count++;
     digitalWrite(countLED, HIGH);
-    delay(500);
+  }
+  else {
     digitalWrite(countLED, LOW);
   }
 
