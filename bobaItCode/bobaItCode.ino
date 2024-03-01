@@ -2,17 +2,27 @@
 
 const int failLED = 3;
 const int successLED = 4;
-const int resetButton = 2;
+const int resetButton = 2; // needs to be tested later
+
 //command input pins
 const int scoopSwitch = 5;
-const int stabButton = 6;
-const int cardSwipe = A2;
-//joystick input pins
+const int stabButton = A2; // actual pin input
+const int cardSwipe = 5;
+
+//joystick input pins and joystick specific moves
 const int VRX = A0;
 const int VRY = A1;
-//speaker output pin
+int xvalue = 0;
+int yvalue = 0;
+int joystickMoves = 0;
+bool up,down,left,right = false;
+
+//speaker output pin 
+// pin 26
 const int speaker = A3;
+
 //LCD output pins
+// ignore until LCD can be configured correctly
 const int RS = 7;
 const int EN = 8;
 const int D4 = 9;
@@ -40,12 +50,20 @@ bool shakeSuccess = false;
 bool roundSuccess = false;
 bool gameOver = false;
 
+// these are LEDs used to test cases and will be deleted
+// after each component has been tested and verified
+// will be used for cases until speaker is implemented
+const int LED1 = 5; //left
+const int LED2 = 6; //right
+const int LED3 = 7; // down
+const int LED4 = 8; // up
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
   pinMode(reset, INPUT_PULLUP);
   pinMode(scoopSwitch, INPUT_PULLUP);
-  pinMode(stabButton, INPUT_PULLUP);
+  pinMode(stabButton, INPUT_PULLUP); // verified
   pinMode(cardSwipe, INPUT);
   pinMode(VRX, INPUT);
   pinMode(VRY, INPUT);
@@ -68,7 +86,8 @@ void loop() {
     //randomly access command array to pick command to be done
     preCommand = millis();
     command = commandArr[int(floor(random(0, 4)))];
-    Serial.println(command);
+    Serial.println(command); // will become speaker output eventually
+
     //activate command based on random number
     while (postCommand - preCommand <= timer) {
       if (roundSuccess = true) break;
@@ -76,22 +95,26 @@ void loop() {
 
         //stab command
         case 0:
+          digitalWrite(LED1, HIGH);
           stabOut = digitalRead(stabButton);
-          if (stabOut == LOW) stabSuccess == true;
-          else if (stabOut == HIGH) stabSuccess == false;
+          if (stabOut == HIGH) stabSuccess == true;
+          else if (stabOut == LOW) stabSuccess == false;
           if (stabSuccess) {
+            digitalWrite(LED1,LOW);
             roundSuccess = successFxn();
             continue;
-          }
+            }
           else {
             roundSuccess = failFxn();
-          }
+            }
         break;
 
         //shake command
         case 1:
+          digitalWrite(LED2, HIGH);
           //read joystick input for success or fail
-          if (shakeSuccess) {
+          if (shakeSuccess) { // && timer did not run out
+            digitalWrite(LED2,LOW);
             roundSuccess = successFxn();
             continue;
           }
@@ -104,10 +127,12 @@ void loop() {
 
         //swipe command
         case 2:
+          digitalWrite(LED3,HIGH);
           swipeOut = analogRead(cardSwipe);
           if (swipeOut >= 500) swipeSuccess = true;
           else if (swipeOut < 500) swipeSuccess = false;
           if (swipeSuccess) {
+            digitalWrite(LED3,LOW);
             roundSuccess = successFxn();
             continue;
           }
@@ -118,10 +143,16 @@ void loop() {
 
         //scoop command
         case 3:
+          digitalWrite(LED4, HIGH);
           scoopOut = digitalRead(scoopSwitch);
-          if (scoopOut == LOW) scoopSuccess = true;
-          else if (scoopOut == HIGH) scoopSuccess = false;
+          if (scoopOut == LOW) 
+            scoopSuccess = true;
+            
+          else if (scoopOut == HIGH) 
+            scoopSuccess = false;
+
           if (scoopSuccess) {
+            digitalWrite(LED4,LOW);
             roundSuccess = successFxn();
             continue;
           }
@@ -168,6 +199,58 @@ void gameOverFxn() {
   lcd.print(char(score));
   while (resetButton == HIGH) {}
   gameOver = false;
+}
+
+bool shakeSucces()
+{
+  while (true) // could be replaced with while(timer has not run out)
+  {
+    xvalue = analogRead(VRX);
+    yvalue = analogRead(VRY);
+
+  // if the joystick goes left
+  if (xvalue < 400)
+    {
+      left = true;
+    }
+  if (xvalue > 800) // goes right
+    {
+      right = true;
+    }
+  if (yvalue > 800) // goes up
+    {
+      up = true;
+    }
+  if (yvalue < 400) // goes down
+    {
+      down = true;
+    }
+
+    // if the first rotation of the joystick is done
+    if (down==true && up==true && right==true && left==true) 
+      {
+        // increase the number of moves made, and return success when enough rotations
+        joystickMoves++;
+        if (joystickMoves > 2)
+        {
+          // reset all determinations and return true
+          up = false;
+          down = false;
+          left = false;
+          right = false;
+          joystickMoves = 0;
+          return true;
+        }
+        else // restart the moves for another rotation
+        {
+          up = false;
+          down = false;
+          left = false;
+          right = false;
+        }
+      }
+  }
+  return false;
 }
 
 void timerDec() {
