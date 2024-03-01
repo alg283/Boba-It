@@ -63,6 +63,10 @@ void setup() {
   pinMode(scoopSwitch, INPUT);
   pinMode(stabButton, INPUT_PULLUP); // verified
   pinMode(cardSwipe, INPUT);
+  pinMode(LED1,OUTPUT);
+  pinMode(LED2,OUTPUT);
+  pinMode(LED3,OUTPUT);
+  pinMode(LED4,OUTPUT);
   pinMode(VRX, INPUT);
   pinMode(VRY, INPUT);
   pinMode(failLED, OUTPUT);
@@ -119,22 +123,6 @@ void loop() {
           }
           break;
 
-        // //swipe command
-        // case 3:
-        //   digitalWrite(LED3,HIGH);
-        //   swipeOut = analogRead(cardSwipe);
-        //   if (swipeOut >= 500) swipeSuccess = true;
-        //   else if (swipeOut < 500) swipeSuccess = false;
-        //   if (swipeSuccess) {
-        //     digitalWrite(LED3,LOW);
-        //     successFxn();
-        //   }
-        //   else {
-        //     gameOverFxn();
-        //   }
-        // break;
-
-        //scoop command
         case 2:
           scoopOut = scoopSuccess(timer);
           if (scoopOut) 
@@ -171,6 +159,10 @@ void successFxn() {
 
 
 void gameOverFxn() {
+  digitalWrite(LED1,LOW);
+  digitalWrite(LED2,LOW);
+  digitalWrite(LED3,LOW);
+  digitalWrite(LED4,LOW);
   digitalWrite(failLED,HIGH);
   //lcd.print(char(score));
   while (digitalRead(resetButton) == LOW) {continue;}
@@ -178,7 +170,7 @@ void gameOverFxn() {
   //digitalWrite(failLED,LOW);
 }
 
-// LED 4 did not work
+
 bool shakeSuccess(unsigned long timer)
 {
   unsigned long immediateStartTime = millis();
@@ -230,6 +222,10 @@ bool shakeSuccess(unsigned long timer)
           right = false;
         }
       }
+      else if (digitalRead(stabButton) == HIGH)
+        gameOverFxn();
+      else if (digitalRead(scoopSwitch)==HIGH)
+        gameOverFxn();
   }
   return false;
 }
@@ -241,11 +237,22 @@ bool stabSuccess(unsigned long timer)
   digitalWrite(LED1,HIGH);
   while(millis() - immediateStartTime < timer)
   {
+    xvalue = analogRead(VRX);
+    yvalue = analogRead(VRY);
+    if (xvalue<400 || xvalue>800)
+      {
+        if (yvalue>800 || yvalue<400)
+          gameOverFxn();
+      }
+
     if (digitalRead(stabButton) == HIGH) 
       {
       digitalWrite(LED1,LOW);
       return true;
       }
+    else if (digitalRead(scoopSwitch)==HIGH)
+      gameOverFxn();
+    
   }
   digitalWrite(LED1,LOW);
   return false;
@@ -258,11 +265,21 @@ bool scoopSuccess(unsigned long timer)
   digitalWrite(LED3,HIGH);
   while (millis() - immediateStartTime < timer) // could be replaced with while(timer has not run out)
   {
+    xvalue = analogRead(VRX);
+    yvalue = analogRead(VRY);
+    if (xvalue<400 || xvalue>800)
+      {
+        if (yvalue>800 || yvalue<400)
+          gameOverFxn();
+      }
+      
     if (digitalRead(scoopSwitch) == LOW)
     {
       digitalWrite(LED3,LOW);
       return true;
     }
+    else if (digitalRead(stabButton)==HIGH)
+      gameOverFxn();
   }
   digitalWrite(LED3,LOW);
   return false;
