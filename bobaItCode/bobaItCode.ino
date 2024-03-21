@@ -3,6 +3,7 @@
 const int failLED = 3;
 const int successLED = 4;
 const int resetButton = 2; // needs to be tested later
+const int buzzer = A3;
 
 //command input pins
 const int scoopSwitch = A4;
@@ -18,24 +19,16 @@ int joystickMoves = 0;
 bool up,down,left,right = false;
 bool butt = false;
 
-//speaker output pin 
-// pin 26
-const int speaker = A3;
+const int b4 = 10; //16
+const int b3 = 9;
+const int b2 = 0;
+const int b1 = 1;
+const int b0 = A5;
 
-//LCD output pins
-// ignore until LCD can be configured correctly
-//const int RS = 7;
-//const int EN = 8;
-const int D4 = 9;
-const int D5 = 10;
-const int D6 = 11;
-const int D7 = 12;
-//LiquidCrystal lcd(RS, EN, D4, D5, D6, D7);
 
 //changing variables
 int score = 0;
-int roundCounter = 0;
-unsigned long timer = 8000;
+unsigned long timer = 10000;
 unsigned long preCommand = 0;
 unsigned long postCommand = 0;
 int commandArr[4] = {0, 1, 2, 3};
@@ -61,6 +54,7 @@ void setup() {
   Serial.begin(9600);
   pinMode(resetButton, INPUT_PULLUP);
   pinMode(scoopSwitch, INPUT);
+  pinMode(buzzer, OUTPUT);
   pinMode(stabButton, INPUT_PULLUP); // verified
   pinMode(cardSwipe, INPUT);
   pinMode(LED1,OUTPUT);
@@ -72,7 +66,13 @@ void setup() {
   pinMode(failLED, OUTPUT);
   pinMode(successLED, OUTPUT);
   pinMode(speaker, OUTPUT);
-  //lcd.begin(16, 2);
+
+  pinMode(b4, OUTPUT);
+  pinMode(b3, OUTPUT);
+  pinMode(b2, OUTPUT);
+  pinMode(b1, OUTPUT);
+  pinMode(b0, OUTPUT);
+
 }
 
 void loop() {
@@ -143,14 +143,13 @@ void reset() {
   digitalWrite(failLED,LOW);
   digitalWrite(successLED,LOW);
   score = 0;
-  timer = 5000;
+  timer = 8000;
   //lcd.clear();
   delay(1000);
 }
 
 void successFxn() {
   score++;
-  roundCounter++;
   timerDec();
   digitalWrite(successLED, HIGH);
   delay(500);
@@ -164,6 +163,7 @@ void gameOverFxn() {
   digitalWrite(LED3,LOW);
   digitalWrite(LED4,LOW);
   digitalWrite(failLED,HIGH);
+  tone(buzzer,500);
   //lcd.print(char(score));
   while (digitalRead(resetButton) == LOW) {continue;}
   gameOver = false;
@@ -286,7 +286,10 @@ bool scoopSuccess(unsigned long timer)
 }
 
 void timerDec() {
-  if (score%10 == 0) {
-    timer -= 500;
+  if (timer != 1000)
+  {
+    if (score%3 == 0) {
+      timer -= 500;
+  }
   }
 }
