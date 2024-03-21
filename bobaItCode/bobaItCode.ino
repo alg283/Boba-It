@@ -65,7 +65,6 @@ void setup() {
   pinMode(VRY, INPUT);
   pinMode(failLED, OUTPUT);
   pinMode(successLED, OUTPUT);
-  pinMode(speaker, OUTPUT);
 
   pinMode(b4, OUTPUT);
   pinMode(b3, OUTPUT);
@@ -144,6 +143,7 @@ void reset() {
   digitalWrite(successLED,LOW);
   score = 0;
   timer = 8000;
+  noTone(buzzer);
   //lcd.clear();
   delay(1000);
 }
