@@ -1,4 +1,17 @@
-#include <LiquidCrystal.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+const int SCREEN_WIDTH = 128;
+const int SCREEN_HEIGHT = 64;
+
+const int OLED_MOSI = 9;
+const int OLED_CLK = 10;
+const int OLED_DC = 11;
+const int OLED_CS = 12;
+const int OLED_RST = 13;
+
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT,
+  OLED_MOSI, OLED_CLK, OLED_DC, OLED_RST, OLED_CS);
 
 const int failLED = 3;
 const int successLED = 4;
@@ -18,12 +31,6 @@ int yvalue = 0;
 int joystickMoves = 0;
 bool up,down,left,right = false;
 bool butt = false;
-
-const int b4 = 10; //16
-const int b3 = 9;
-const int b2 = 0;
-const int b1 = 1;
-const int b0 = A5;
 
 
 //changing variables
@@ -52,6 +59,7 @@ const int LED4 = 8; // up
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
+  display.begin(SSD1306_SWITCHCAPVCC);
   pinMode(resetButton, INPUT_PULLUP);
   pinMode(scoopSwitch, INPUT);
   pinMode(buzzer, OUTPUT);
@@ -66,12 +74,8 @@ void setup() {
   pinMode(failLED, OUTPUT);
   pinMode(successLED, OUTPUT);
 
-  pinMode(b4, OUTPUT);
-  pinMode(b3, OUTPUT);
-  pinMode(b2, OUTPUT);
-  pinMode(b1, OUTPUT);
-  pinMode(b0, OUTPUT);
-
+  display.clearDisplay();
+  display.display();
 }
 
 void loop() {
@@ -144,12 +148,14 @@ void reset() {
   score = 0;
   timer = 8000;
   noTone(buzzer);
-  //lcd.clear();
+  display.clearDisplay();
+  display.display();
   delay(1000);
 }
 
 void successFxn() {
   score++;
+  if (score >= 99) gameOverFxn();
   timerDec();
   digitalWrite(successLED, HIGH);
   delay(500);
@@ -163,6 +169,11 @@ void gameOverFxn() {
   digitalWrite(LED3,LOW);
   digitalWrite(LED4,LOW);
   digitalWrite(failLED,HIGH);
+  display.setTextColor(SSD1306_WHITE);
+  display.setTextSize(4);
+  display.setCursor(0, 0);
+  display.println("Score: " + String(score));
+  display.display();
   tone(buzzer,500);
   //lcd.print(char(score));
   while (digitalRead(resetButton) == LOW) {continue;}
