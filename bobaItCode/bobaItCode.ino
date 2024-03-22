@@ -61,7 +61,7 @@ void setup() {
   Serial.begin(9600);
   display.begin(SSD1306_SWITCHCAPVCC);
   pinMode(resetButton, INPUT_PULLUP);
-  pinMode(scoopSwitch, INPUT);
+  pinMode(scoopSwitch, INPUT_PULLUP);
   pinMode(buzzer, OUTPUT);
   pinMode(stabButton, INPUT_PULLUP); // verified
   pinMode(cardSwipe, INPUT);
@@ -91,8 +91,7 @@ void loop() {
 
     //randomly access command array to pick command to be done
     preCommand = millis();
-    //command = commandArr[int(floor(random(0, 3)))];
-    command = 0;
+    command = commandArr[int(floor(random(0, 3)))];
  // Serial.println(command); // will become speaker output eventually
 
     //activate command based on random number
@@ -186,6 +185,7 @@ bool shakeSuccess(unsigned long timer)
 {
   unsigned long immediateStartTime = millis();
   digitalWrite(LED4,HIGH);
+  tone(buzzer, 3000);
   while (millis() - immediateStartTime < timer) // could be replaced with while(timer has not run out)
   {
     xvalue = analogRead(VRX);
@@ -214,7 +214,7 @@ bool shakeSuccess(unsigned long timer)
       {
         // increase the number of moves made, and return success when enough rotations
         joystickMoves++;
-        if (joystickMoves > 2)
+        if (joystickMoves > 1)
         {
           // reset all determinations and return true
           up = false;
@@ -223,6 +223,7 @@ bool shakeSuccess(unsigned long timer)
           right = false;
           joystickMoves = 0;
           digitalWrite(LED4,LOW);
+          noTone(buzzer);
           return true;
         }
         else // restart the moves for another rotation
@@ -246,6 +247,7 @@ bool stabSuccess(unsigned long timer)
 {
   unsigned long immediateStartTime = millis();
   digitalWrite(LED1,HIGH);
+  tone(buzzer, 10);
   while(millis() - immediateStartTime < timer)
   {
     xvalue = analogRead(VRX);
@@ -259,6 +261,7 @@ bool stabSuccess(unsigned long timer)
     if (digitalRead(stabButton) == HIGH) 
       {
       digitalWrite(LED1,LOW);
+      noTone(buzzer);
       return true;
       }
     else if (digitalRead(scoopSwitch)==HIGH)
@@ -274,6 +277,7 @@ bool scoopSuccess(unsigned long timer)
 {
   unsigned long immediateStartTime = millis();
   digitalWrite(LED3,HIGH);
+  tone(buzzer, 1500);
   while (millis() - immediateStartTime < timer) // could be replaced with while(timer has not run out)
   {
     xvalue = analogRead(VRX);
@@ -284,9 +288,10 @@ bool scoopSuccess(unsigned long timer)
           gameOverFxn();
       }
       
-    if (digitalRead(scoopSwitch) == LOW)
+    if (digitalRead(scoopSwitch) == HIGH)
     {
       digitalWrite(LED3,LOW);
+      noTone(buzzer);
       return true;
     }
     else if (digitalRead(stabButton)==HIGH)
