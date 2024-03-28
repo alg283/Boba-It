@@ -21,7 +21,6 @@ const int buzzer = A3;
 //command input pins
 const int scoopSwitch = A4;
 const int stabButton = A2; // actual pin input
-const int cardSwipe = 44;
 
 //joystick input pins and joystick specific moves
 const int VRX = A0;
@@ -45,7 +44,6 @@ bool scoopOut = false;
 int swipeOut = HIGH;
 int shakeOut = HIGH;
 
-bool gameOver = false;
 bool swipeSuccess;
 
 // these are LEDs used to test cases and will be deleted
@@ -61,10 +59,9 @@ void setup() {
   Serial.begin(9600);
   display.begin(SSD1306_SWITCHCAPVCC);
   pinMode(resetButton, INPUT_PULLUP);
-  pinMode(scoopSwitch, INPUT_PULLUP);
+  pinMode(scoopSwitch, INPUT);
   pinMode(buzzer, OUTPUT);
   pinMode(stabButton, INPUT_PULLUP); // verified
-  pinMode(cardSwipe, INPUT);
   pinMode(LED1,OUTPUT);
   pinMode(LED2,OUTPUT);
   pinMode(LED3,OUTPUT);
@@ -176,7 +173,6 @@ void gameOverFxn() {
   tone(buzzer,500);
   //lcd.print(char(score));
   while (digitalRead(resetButton) == LOW) {continue;}
-  gameOver = false;
   //digitalWrite(failLED,LOW);
 }
 
@@ -185,7 +181,7 @@ bool shakeSuccess(unsigned long timer)
 {
   unsigned long immediateStartTime = millis();
   digitalWrite(LED4,HIGH);
-  tone(buzzer, 3000);
+  tone(buzzer, 2000);
   while (millis() - immediateStartTime < timer) // could be replaced with while(timer has not run out)
   {
     xvalue = analogRead(VRX);
@@ -234,9 +230,9 @@ bool shakeSuccess(unsigned long timer)
           right = false;
         }
       }
-      else if (digitalRead(stabButton) == HIGH)
+      if (digitalRead(stabButton) == LOW)
         gameOverFxn();
-      else if (digitalRead(scoopSwitch)==HIGH)
+      if (digitalRead(scoopSwitch)==LOW)
         gameOverFxn();
   }
   return false;
@@ -258,13 +254,13 @@ bool stabSuccess(unsigned long timer)
           gameOverFxn();
       }
 
-    if (digitalRead(stabButton) == HIGH) 
+    if (digitalRead(stabButton) == LOW) 
       {
       digitalWrite(LED1,LOW);
       noTone(buzzer);
       return true;
       }
-    else if (digitalRead(scoopSwitch)==HIGH)
+    else if (digitalRead(scoopSwitch)==LOW)
       gameOverFxn();
     
   }
@@ -288,13 +284,13 @@ bool scoopSuccess(unsigned long timer)
           gameOverFxn();
       }
       
-    if (digitalRead(scoopSwitch) == HIGH)
+    if (digitalRead(scoopSwitch) == LOW)
     {
       digitalWrite(LED3,LOW);
       noTone(buzzer);
       return true;
     }
-    else if (digitalRead(stabButton)==HIGH)
+    else if (digitalRead(stabButton)==LOW)
       gameOverFxn();
   }
   digitalWrite(LED3,LOW);
